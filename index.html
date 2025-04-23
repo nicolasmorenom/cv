@@ -7,16 +7,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Add jsPDF and html2canvas CDNs -->
+    <!-- jsPDF and html2canvas CDNs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <title>Nicolas Moreno - Curriculum Vitae</title>
     <style>
-        /* Apply Inter font globally */
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* Add some subtle styling for list markers */
         ul li::marker {
             color: #4a5568; /* text-gray-600 */
         }
@@ -31,9 +29,12 @@
             <p class="text-lg text-gray-600">
                 (+1) 240-879-8878 | <a href="mailto:n.morenom@outlook.com" class="text-blue-600 hover:underline">n.morenom@outlook.com</a> | Washington, DC, USA
             </p>
-            <div class="mt-4">
+            <div class="mt-4 space-x-4">
                 <button id="download-pdf" class="inline-block bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-800 transition duration-300">
-                    Download CV as PDF
+                    Download Full CV as PDF
+                </button>
+                <button id="download-simplified-pdf" class="inline-block bg-green-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-800 transition duration-300">
+                    Download Simplified CV as PDF
                 </button>
             </div>
         </header>
@@ -95,7 +96,7 @@
                         </ul>
                     </div>
 
-                     <div class="mb-6">
+                    <div class="mb-6">
                         <h3 class="text-xl font-semibold">Project Manager</h3>
                         <p class="text-md font-medium text-gray-700">Nutrinfantil Foundation, Bogotá, Colombia</p>
                         <p class="text-sm text-gray-500 mb-2">January 2018 - August 2018</p>
@@ -184,7 +185,7 @@
         // Update the year in the footer
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
-        // PDF generation logic
+        // Full CV PDF generation (using html2canvas)
         document.getElementById('download-pdf').addEventListener('click', async () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({
@@ -195,14 +196,13 @@
 
             const element = document.querySelector('.container');
             const button = document.getElementById('download-pdf');
-            button.disabled = true; // Disable button during generation
+            button.disabled = true;
             button.textContent = 'Generating PDF...';
 
             try {
-                // Capture the HTML content as a canvas
                 const canvas = await html2canvas(element, {
-                    scale: 2, // Increase resolution
-                    useCORS: true, // Handle external resources
+                    scale: 2,
+                    useCORS: true,
                     windowWidth: element.scrollWidth,
                     windowHeight: element.scrollHeight
                 });
@@ -212,17 +212,183 @@
                 const pdfWidth = doc.internal.pageSize.getWidth();
                 const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-                // Add image to PDF
                 doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-
-                // Save the PDF
-                doc.save('Nicolas_Moreno_CV.pdf');
+                doc.save('Nicolas_Moreno_CV_Full.pdf');
             } catch (error) {
                 console.error('Error generating PDF:', error);
                 alert('Failed to generate PDF. Please try again.');
             } finally {
                 button.disabled = false;
-                button.textContent = 'Download CV as PDF';
+                button.textContent = 'Download Full CV as PDF';
+            }
+        });
+
+        // Simplified CV PDF generation (text-based)
+        document.getElementById('download-simplified-pdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'pt',
+                format: 'a4'
+            });
+
+            const button = document.getElementById('download-simplified-pdf');
+            button.disabled = true;
+            button.textContent = 'Generating Simplified PDF...';
+
+            try {
+                // Settings
+                const margin = 40;
+                let y = 40;
+                const lineHeight = 20;
+                const pageHeight = doc.internal.pageSize.height;
+
+                // Helper function to add text and handle page breaks
+                const addText = (text, x, y, options = {}) => {
+                    if (y > pageHeight - margin) {
+                        doc.addPage();
+                        y = margin;
+                    }
+                    doc.text(text, x, y, options);
+                    return y + lineHeight;
+                };
+
+                // Helper function to add section
+                const addSection = (title, items, isBullet = false) => {
+                    y = addText(title, margin, y, { fontSize: 14, fontStyle: 'bold' });
+                    items.forEach(item => {
+                        if (typeof item === 'string') {
+                            y = addText(isBullet ? `• ${item}` : item, margin + (isBullet ? 10 : 0), y);
+                        } else {
+                            y = addText(item.title, margin, y, { fontSize: 12, fontStyle: 'bold' });
+                            y = addText(item.subtitle, margin, y);
+                            y = addText(item.date, margin, y);
+                            item.bullets?.forEach(bullet => {
+                                y = addText(`• ${bullet}`, margin + 10, y);
+                            });
+                            y += 10; // Extra space after section
+                        }
+                    });
+                    y += 10; // Space after section
+                };
+
+                // Set font
+                doc.setFont('helvetica');
+                doc.setFontSize(12);
+
+                // Content based on OCR
+                y = addText('NICOLAS MORENO', margin, y, { fontSize: 16, fontStyle: 'bold' });
+                y = addText('(+1) 240-879-8878 | n.morenom@outlook.com | Washington, DC, USA', margin, y);
+
+                addSection('Professional Experience', [
+                    {
+                        title: 'Operations Sr Associate',
+                        subtitle: 'Inter-American Development Bank (IDB), Washington, DC, USA',
+                        date: 'December 2024 - Present',
+                        bullets: [
+                            'Lead trust funds with donor contributions up to USD 100 million, taking key responsibility for strategic resource allocation across projects.',
+                            'Spearhead departmental data strategy initiatives to generate critical analytics for the President and Board of Directors’ decision-making processes.',
+                            'Develop and implement policies and procedures to enhance existing bank mechanisms, ensuring alignment with evolving donor requirements.'
+                        ]
+                    },
+                    {
+                        title: 'Grants and Co-financing Management and Administration Consultant (ORP/GCM)',
+                        subtitle: 'Inter-American Development Bank (IDB), Washington, DC, USA',
+                        date: 'December 2021 - November 2024',
+                        bullets: [
+                            'Managed fund operations for USD 62M portfolio, ensuring compliance with multilateral agreements.',
+                            'Designed and implemented centralized financial monitoring system for 160+ operations.',
+                            'Created innovative donor reporting tools, significantly reducing reporting cycles and improving accuracy.',
+                            'Conducted technical analyses to inform strategic resource allocation decisions across projects.',
+                            'Negotiated with international donors and co-financiers to resolve complex financial discrepancies.',
+                            'Facilitated inter-departmental coordination to ensure transparent financial management practices.'
+                        ]
+                    },
+                    {
+                        title: 'Financial and Administrative Coordinator',
+                        subtitle: 'Fundación Empresarios por la Educación, Bogotá, Colombia',
+                        date: 'July 2020 - November 2021',
+                        bullets: [
+                            'Restructured financial operations, achieving 30% reduction in administrative costs.',
+                            'Developed stakeholder engagement strategies that increased grant revenue by 4%.',
+                            'Implemented Power BI analytics for grant management, enhancing decision-making capabilities.',
+                            'Administered USD 2M in Ministry of Education grants, ensuring regulatory compliance.',
+                            'Created financial monitoring frameworks to track project performance against strategic objectives.'
+                        ]
+                    },
+                    {
+                        title: 'Financial and Administrative Manager',
+                        subtitle: 'Palacios Lleras Law Firm, Bogotá, Colombia',
+                        date: 'September 2018 - July 2020',
+                        bullets: [
+                            'Led financial transformation initiative that increased capital by 25% through strategic investor engagement.',
+                            'Modernized financial systems through cloud-based infrastructure implementation.',
+                            'Designed debt refinancing models that optimized the organization’s financial structure.',
+                            'Established financial controls that improved fiscal transparency and accountability.'
+                        ]
+                    },
+                    {
+                        title: 'Project Manager',
+                        subtitle: 'Nutrinfantil Foundation, Bogotá, Colombia',
+                        date: 'January 2018 - August 2018',
+                        bullets: [
+                            'Developed comprehensive financial sustainability plan to ensure long-term organizational viability.',
+                            'Directed social project implementation and budget allocation processes.',
+                            'Created communications strategy that expanded the foundation’s stakeholder network.'
+                        ]
+                    },
+                    {
+                        title: 'Financial Analyst',
+                        subtitle: 'Movich Hotels, Bogotá, Colombia',
+                        date: 'January 2015 - August 2017',
+                        bullets: [
+                            'Implemented financial controls that yielded 3% annual budget savings.',
+                            'Developed financial monitoring practices that increased project profitability by 5%.',
+                            'Conducted financial risk assessments to inform capital investment decisions.'
+                        ]
+                    }
+                ], true);
+
+                addSection('Education', [
+                    'M.A. in Finance, Universidad de los Andes, Bogotá, Colombia, September 2021',
+                    'B.A. in Business Administration, Pontificia Universidad Javeriana, Bogotá, Colombia, December 2015'
+                ]);
+
+                addSection('Professional Certifications', [
+                    'Microsoft Certified Power BI Data Analyst (Nov 2023)'
+                ], true);
+
+                addSection('Technical Skills', [
+                    'Financial Modeling & Analysis: Advanced financial modeling, resource allocation, risk analysis.',
+                    'Data Analytics & Visualization: Power BI, Tableau, SAP, quantitative/qualitative analysis, data storytelling.',
+                    'Programming & Tools: Python, SQL, HTML.',
+                    'Project Management: Execution monitoring, financial tracking, reporting systems.'
+                ]);
+
+                addSection('Languages', [
+                    'English: Fluent',
+                    'Spanish: Native'
+                ]);
+
+                addSection('Professional Competencies', [
+                    'Strategic financial planning',
+                    'Stakeholder engagement & partnership building',
+                    'International donor relations & compliance',
+                    'Cross-functional team leadership',
+                    'Financial risk management & mitigation'
+                ], true);
+
+                // Footer
+                y = addText('© 2025 Nicolas Moreno. All rights reserved.', margin, y);
+
+                // Save PDF
+                doc.save('Nicolas_Moreno_CV_Simplified.pdf');
+            } catch (error) {
+                console.error('Error generating simplified PDF:', error);
+                alert('Failed to generate simplified PDF. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Download Simplified CV as PDF';
             }
         });
     </script>
