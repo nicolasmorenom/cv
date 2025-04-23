@@ -7,6 +7,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Add jsPDF and html2canvas CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <title>Nicolas Moreno - Curriculum Vitae</title>
     <style>
         /* Apply Inter font globally */
@@ -28,11 +31,11 @@
             <p class="text-lg text-gray-600">
                 (+1) 240-879-8878 | <a href="mailto:n.morenom@outlook.com" class="text-blue-600 hover:underline">n.morenom@outlook.com</a> | Washington, DC, USA
             </p>
-<div class="mt-4">
-        <a href="Nicolas_Moreno_CV.pdf" download class="inline-block bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-800 transition duration-300">
-            Download CV as PDF
-        </a>
-    </div>
+            <div class="mt-4">
+                <button id="download-pdf" class="inline-block bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-800 transition duration-300">
+                    Download CV as PDF
+                </button>
+            </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -103,7 +106,8 @@
                         </ul>
                     </div>
 
-                    <div> <h3 class="text-xl font-semibold">Financial Analyst</h3>
+                    <div>
+                        <h3 class="text-xl font-semibold">Financial Analyst</h3>
                         <p class="text-md font-medium text-gray-700">Movich Hotels, Bogotá, Colombia</p>
                         <p class="text-sm text-gray-500 mb-2">January 2015 - August 2017</p>
                         <ul class="list-disc list-inside text-gray-700 space-y-1 pl-4">
@@ -135,7 +139,7 @@
                     <h2 class="text-2xl font-semibold text-blue-700 border-b-2 border-blue-200 pb-2 mb-4">Professional Certifications</h2>
                     <ul class="list-none space-y-2">
                         <li class="bg-blue-50 p-2 rounded-md text-blue-800">Microsoft Certified Power BI Data Analyst <span class="text-sm text-gray-500 block">(Nov 2023)</span></li>
-                                            </ul>
+                    </ul>
                 </section>
 
                 <section id="technical-skills">
@@ -168,15 +172,60 @@
                 </section>
 
             </div>
-        </div> <footer class="text-center mt-12 pt-6 border-t border-gray-200">
-            <p class="text-sm text-gray-500">&copy; <span id="current-year"></span> Nicolas Moreno. All rights reserved.</p>
+        </div>
+
+        <footer class="text-center mt-12 pt-6 border-t border-gray-200">
+            <p class="text-sm text-gray-500">© <span id="current-year"></span> Nicolas Moreno. All rights reserved.</p>
         </footer>
 
-    </div> <script>
-        // Simple script to update the year in the footer
+    </div>
+
+    <script>
+        // Update the year in the footer
         document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // PDF generation logic
+        document.getElementById('download-pdf').addEventListener('click', async () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: 'a4'
+            });
+
+            const element = document.querySelector('.container');
+            const button = document.getElementById('download-pdf');
+            button.disabled = true; // Disable button during generation
+            button.textContent = 'Generating PDF...';
+
+            try {
+                // Capture the HTML content as a canvas
+                const canvas = await html2canvas(element, {
+                    scale: 2, // Increase resolution
+                    useCORS: true, // Handle external resources
+                    windowWidth: element.scrollWidth,
+                    windowHeight: element.scrollHeight
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const imgProps = doc.getImageProperties(imgData);
+                const pdfWidth = doc.internal.pageSize.getWidth();
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                // Add image to PDF
+                doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+                // Save the PDF
+                doc.save('Nicolas_Moreno_CV.pdf');
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert('Failed to generate PDF. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Download CV as PDF';
+            }
+        });
     </script>
 
 </body>
 </html>
-
