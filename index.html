@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <title>Nicolas Moreno - Curriculum Vitae</title>
     <style>
         body {
@@ -28,7 +29,22 @@
                 (+1) 240-879-8878 | <a href="mailto:n.morenom@outlook.com" class="text-blue-600 hover:underline">n.morenom@outlook.com</a> | Washington, DC, USA
             </p>
             <div class="mt-4 space-x-4">
-                <button id="download-simplified-pdf" class="inline-block bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-800 transition duration-300">
+                <button
+                    id="download-pdf"
+                    class="inline-flex items-center justify-center bg-[#1D4ED8] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#1E40AF] transition duration-300 shadow-sm disabled:opacity-70"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Download Full CV as PDF
+                </button>
+                <button
+                    id="download-simplified-pdf"
+                    class="inline-flex items-center justify-center bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-800 transition duration-300 shadow-sm disabled:opacity-70"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4 4m-4-4h12m-4-8v-1a3 3 0 00-3-3H7a3 3 0 00-3 3v1m4 4l4-4m0 0l-4-4" />
+                    </svg>
                     Download Simplified CV as PDF
                 </button>
             </div>
@@ -180,127 +196,74 @@
         // Update the year in the footer
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
-        // Simplified CV PDF generation (text-based, Harvard/Stanford inspired)
-        document.getElementById('download-simplified-pdf').addEventListener('click', () => {
+        // Full CV PDF generation (using html2canvas)
+        document.getElementById('download-pdf').addEventListener('click', async () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({
                 orientation: 'portrait',
-                unit: 'pt',
+                unit: 'px',
                 format: 'a4'
             });
+
+            const element = document.querySelector('.container');
+            const button = document.getElementById('download-pdf');
+            button.disabled = true;
+            button.textContent = 'Generating PDF...';
+
+            try {
+                const canvas = await html2canvas(element, {
+                    scale: 2,
+                    useCORS: true,
+                    windowWidth: element.scrollWidth,
+                    windowHeight: element.scrollHeight
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const imgProps = doc.getImageProperties(imgData);
+                const pdfWidth = doc.internal.pageSize.getWidth();
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                doc.save('Nicolas_Moreno_CV_Full.pdf');
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert('Failed to generate PDF. Please try again.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Download Full CV as PDF';
+            }
+        });
+
+        // --- Utility Functions for Simplified PDF Generation ---
+        function addStyledText(doc, text, x, y, fontSize = 12, fontStyle = 'normal') {
+            doc.setFontSize(fontSize);
+            doc.setFont('helvetica', fontStyle);
+            doc.text(text, x, y);
+            return y + 18; // Assuming a default lineHeight
+        }
+
+        function addSectionTitle(doc, title, x, y) {
+            return addStyledText(doc, title, x, y, 14, 'bold') + 10;
+        }
+
+        function addBulletPoint(doc, text, x, y) {
+            return addStyledText(doc, `• ${text}`, x + 10, y);
+        }
+
+        document.getElementById('download-simplified-pdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const margin = 20;
+            let y = margin;
 
             const button = document.getElementById('download-simplified-pdf');
             button.disabled = true;
             button.textContent = 'Generating Simplified PDF...';
 
             try {
-                // Settings for the PDF
-                const margin = 50;
-                let y = margin;
-                const lineHeight = 18;
-                const boldFontSize = 14;
-                const regularFontSize = 12;
-                const sectionTitleFontSize = 16;
-                const pageHeight = doc.internal.pageSize.height;
+                y = addStyledText(doc, 'NICOLAS MORENO', margin, y, 16, 'bold');
+                y = addStyledText(doc, '(+1) 240-879-8878 | n.morenom@outlook.com | Washington, DC, USA', margin, y, 10);
+                y += 10;
 
-                // Helper function to add text with page break handling
-                const addText = (text, x, y, fontSize = regularFontSize, fontStyle = 'normal') => {
-                    const textLines = doc.splitTextToSize(text, doc.internal.pageSize.width - 2 * margin);
-                    let currentY = y;
-                    textLines.forEach(line => {
-                        if (currentY + fontSize > pageHeight - margin) {
-                            doc.addPage();
-                            currentY = margin;
-                        }
-                        doc.setFontSize(fontSize);
-                        doc.setFont('helvetica', fontStyle);
-                        doc.text(line, x, currentY);
-                        currentY += lineHeight;
-                    });
-                    return currentY;
-                };
-
-                // Add name and contact information
-                y = addText('NICOLAS MORENO', margin, y, 20, 'bold');
-                y = addText('(+1) 240-879-8878 | n.morenom@outlook.com | Washington, DC, USA', margin, y, regularFontSize);
-                y += lineHeight; // Add some space
-
-                // --- Professional Experience ---
-                y = addText('Professional Experience', margin, y, sectionTitleFontSize, 'bold');
-                y += lineHeight / 2;
-
-                const experienceSections = document.querySelectorAll('#experience > div');
-                experienceSections.forEach(exp => {
-                    const titleElement = exp.querySelector('h3');
-                    const subtitleElement = exp.querySelector('p:nth-child(2)');
-                    const dateElement = exp.querySelector('p:nth-child(3)');
-                    const bulletPoints = exp.querySelectorAll('ul li');
-
-                    if (titleElement) {
-                        y = addText(titleElement.textContent, margin, y, boldFontSize, 'bold');
-                    }
-                    if (subtitleElement) {
-                        y = addText(subtitleElement.textContent, margin, y, regularFontSize, 'italic');
-                    }
-                    if (dateElement) {
-                        y = addText(dateElement.textContent, margin, y, regularFontSize);
-                    }
-                    if (bulletPoints.length > 0) {
-                        bulletPoints.forEach(bullet => {
-                            y = addText(`• ${bullet.textContent}`, margin + 15, y, regularFontSize);
-                        });
-                    }
-                    y += lineHeight / 2; // Space after each job
-                });
-
-                // --- Education ---
-                const educationSection = document.getElementById('education');
-                const educationEntries = educationSection.querySelectorAll('div');
-
-                y = addText('Education', margin, y, sectionTitleFontSize, 'bold');
-                y += lineHeight / 2;
-
-                educationEntries.forEach(edu => {
-                    const degreeElement = edu.querySelector('h3');
-                    const institutionElement = edu.querySelector('p:nth-child(2)');
-                    const dateElement = edu.querySelector('p:nth-child(3)');
-
-                    if (degreeElement) {
-                        y = addText(degreeElement.textContent, margin, y, boldFontSize, 'bold');
-                    }
-                    if (institutionElement) {
-                        y = addText(institutionElement.textContent, margin, y, regularFontSize, 'italic');
-                    }
-                    if (dateElement) {
-                        y = addText(dateElement.textContent, margin, y, regularFontSize);
-                    }
-                    y += lineHeight / 2;
-                });
-
-                // --- Certifications ---
-                const certificationsSection = document.getElementById('certifications');
-                const certificationList = certificationsSection.querySelectorAll('li');
-
-                if (certificationList.length > 0) {
-                    y = addText('Professional Certifications', margin, y, sectionTitleFontSize, 'bold');
-                    y += lineHeight / 2;
-                    certificationList.forEach(cert => {
-                        y = addText(`• ${cert.textContent}`, margin + 15, y, regularFontSize);
-                    });
-                    y += lineHeight / 2;
-                }
-
-                // --- Skills ---
-                const skillsSection = document.getElementById('technical-skills');
-                const skillParagraphs = skillsSection.querySelectorAll('p');
-
-                if (skillParagraphs.length > 0) {
-                    y = addText('Technical Skills', margin, y, sectionTitleFontSize, 'bold');
-                    y += lineHeight / 2;
-                    skillParagraphs.forEach(skill => {
-                        y = addText(skill.textContent, margin, y, regularFontSize);
-                    });
-                    y += lineHeight / 2;
-                }
-
-                // --- Languages ---
+                y = addSectionTitle(doc, 'Professional Experience', margin, y);
+                const experienceSections = document.querySelectorAll('#experience > div
