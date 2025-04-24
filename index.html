@@ -7,13 +7,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <title>Nicolas Moreno - Curriculum Vitae</title>
     <style>
+        /* Apply Inter font globally */
         body {
             font-family: 'Inter', sans-serif;
         }
+        /* Add some subtle styling for list markers */
         ul li::marker {
             color: #4a5568; /* text-gray-600 */
         }
@@ -28,26 +28,11 @@
             <p class="text-lg text-gray-600">
                 (+1) 240-879-8878 | <a href="mailto:n.morenom@outlook.com" class="text-blue-600 hover:underline">n.morenom@outlook.com</a> | Washington, DC, USA
             </p>
-            <div class="mt-4 space-x-4">
-                <button
-                    id="download-pdf"
-                    class="inline-flex items-center justify-center bg-[#1D4ED8] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#1E40AF] transition duration-300 shadow-sm disabled:opacity-70"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Download Full CV as PDF
-                </button>
-                <button
-                    id="download-simplified-pdf"
-                    class="inline-flex items-center justify-center bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-800 transition duration-300 shadow-sm disabled:opacity-70"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4 4m-4-4h12m-4-8v-1a3 3 0 00-3-3H7a3 3 0 00-3 3v1m4 4l4-4m0 0l-4-4" />
-                    </svg>
-                    Download Simplified CV as PDF
-                </button>
-            </div>
+<div class="mt-4">
+        <a href="Nicolas_Moreno_CV.pdf" download class="inline-block bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-800 transition duration-300">
+            Download CV as PDF
+        </a>
+    </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -107,7 +92,7 @@
                         </ul>
                     </div>
 
-                    <div class="mb-6">
+                     <div class="mb-6">
                         <h3 class="text-xl font-semibold">Project Manager</h3>
                         <p class="text-md font-medium text-gray-700">Nutrinfantil Foundation, Bogotá, Colombia</p>
                         <p class="text-sm text-gray-500 mb-2">January 2018 - August 2018</p>
@@ -118,8 +103,7 @@
                         </ul>
                     </div>
 
-                    <div>
-                        <h3 class="text-xl font-semibold">Financial Analyst</h3>
+                    <div> <h3 class="text-xl font-semibold">Financial Analyst</h3>
                         <p class="text-md font-medium text-gray-700">Movich Hotels, Bogotá, Colombia</p>
                         <p class="text-sm text-gray-500 mb-2">January 2015 - August 2017</p>
                         <ul class="list-disc list-inside text-gray-700 space-y-1 pl-4">
@@ -151,7 +135,7 @@
                     <h2 class="text-2xl font-semibold text-blue-700 border-b-2 border-blue-200 pb-2 mb-4">Professional Certifications</h2>
                     <ul class="list-none space-y-2">
                         <li class="bg-blue-50 p-2 rounded-md text-blue-800">Microsoft Certified Power BI Data Analyst <span class="text-sm text-gray-500 block">(Nov 2023)</span></li>
-                    </ul>
+                                            </ul>
                 </section>
 
                 <section id="technical-skills">
@@ -184,86 +168,15 @@
                 </section>
 
             </div>
-        </div>
-
-        <footer class="text-center mt-12 pt-6 border-t border-gray-200">
-            <p class="text-sm text-gray-500">© <span id="current-year"></span> Nicolas Moreno. All rights reserved.</p>
+        </div> <footer class="text-center mt-12 pt-6 border-t border-gray-200">
+            <p class="text-sm text-gray-500">&copy; <span id="current-year"></span> Nicolas Moreno. All rights reserved.</p>
         </footer>
 
-    </div>
-
-    <script>
-        // Update the year in the footer
+    </div> <script>
+        // Simple script to update the year in the footer
         document.getElementById('current-year').textContent = new Date().getFullYear();
+    </script>
 
-        // Full CV PDF generation (using html2canvas)
-        document.getElementById('download-pdf').addEventListener('click', async () => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'portrait',
-                unit: 'px',
-                format: 'a4'
-            });
+</body>
+</html>
 
-            const element = document.querySelector('.container');
-            const button = document.getElementById('download-pdf');
-            button.disabled = true;
-            button.textContent = 'Generating PDF...';
-
-            try {
-                const canvas = await html2canvas(element, {
-                    scale: 2,
-                    useCORS: true,
-                    windowWidth: element.scrollWidth,
-                    windowHeight: element.scrollHeight
-                });
-
-                const imgData = canvas.toDataURL('image/png');
-                const imgProps = doc.getImageProperties(imgData);
-                const pdfWidth = doc.internal.pageSize.getWidth();
-                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-                doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                doc.save('Nicolas_Moreno_CV_Full.pdf');
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-                alert('Failed to generate PDF. Please try again.');
-            } finally {
-                button.disabled = false;
-                button.textContent = 'Download Full CV as PDF';
-            }
-        });
-
-        // --- Utility Functions for Simplified PDF Generation ---
-        function addStyledText(doc, text, x, y, fontSize = 12, fontStyle = 'normal') {
-            doc.setFontSize(fontSize);
-            doc.setFont('helvetica', fontStyle);
-            doc.text(text, x, y);
-            return y + 18; // Assuming a default lineHeight
-        }
-
-        function addSectionTitle(doc, title, x, y) {
-            return addStyledText(doc, title, x, y, 14, 'bold') + 10;
-        }
-
-        function addBulletPoint(doc, text, x, y) {
-            return addStyledText(doc, `• ${text}`, x + 10, y);
-        }
-
-        document.getElementById('download-simplified-pdf').addEventListener('click', () => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const margin = 20;
-            let y = margin;
-
-            const button = document.getElementById('download-simplified-pdf');
-            button.disabled = true;
-            button.textContent = 'Generating Simplified PDF...';
-
-            try {
-                y = addStyledText(doc, 'NICOLAS MORENO', margin, y, 16, 'bold');
-                y = addStyledText(doc, '(+1) 240-879-8878 | n.morenom@outlook.com | Washington, DC, USA', margin, y, 10);
-                y += 10;
-
-                y = addSectionTitle(doc, 'Professional Experience', margin, y);
-                const experienceSections = document.querySelectorAll('#experience > div
